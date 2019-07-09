@@ -18,5 +18,5 @@ bz-chat --host 172.16.16.16
 
 Run bz-chat to connect to another host in `172.16.16.16` and create other channel  `myownchannel`: 
 ```
-bz-chat --host dev-ivantnlap --channel myownchannel
+bz-chat --host 172.16.16.16 --channel myownchannel
 ```
