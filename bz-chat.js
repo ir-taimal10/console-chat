@@ -12,6 +12,9 @@ const portfinder = require('portfinder');
 const arguments = process.argv;
 var channelKey = 'general';
 var host = 'localhost';
+var path = require('path');
+const notifier = require('node-notifier');
+const encrypt = require('socket.io-encrypt');
 
 if (arguments.indexOf('--host') > 0) {
     host = arguments[arguments.indexOf('--host') + 1];
@@ -25,6 +28,8 @@ if (arguments.indexOf('--channel') > 0) {
 // console.log('channel', channelKey);
 
 var socket = socketio.connect(`http://${host}:8080`, {'forceNew': true, query: `channelKey=${channelKey}`});
+encrypt(channelKey)(socket);
+
 var nick;
 var rl = readline.createInterface(process.stdin, process.stdout);
 
@@ -89,6 +94,20 @@ socket.on(channelKey, function (data) {
     if (data.type === 'chat' && data.nick !== nick) {
         leader = color("<" + data.nick + "> ", "green");
         console_out(leader + data.message);
+        if (data.message.indexOf('notify') !== -1) {
+            notifier.notify(
+                {
+                    title: '---',
+                    message: '--',
+                    icon: path.join(__dirname, 'notification.png'), // Absolute path (doesn't work on balloons)
+                    sound: true, // Only Notification Center or Windows Toasters
+                    wait: true // Wait with callback, until user action is taken against notification
+                },
+                function (err, response) {
+                    // Response is response from notification
+                }
+            );
+        }
     } else if (data.type === "notice") {
         console_out(color(data.message, 'cyan'));
     } else if (data.type === "tell" && data.to === nick) {
@@ -106,6 +125,7 @@ portfinder.getPortPromise()
     .then((port) => {
         if (port === 8080) {
             app.use(express.static('public'));
+            ioServer.use(encrypt(channelKey));
             ioServer.on('connection', function (socket) {
                 var channelKey = socket.handshake.query['channelKey'] || 'general';
                 // console.log('userKey', channelKey);
