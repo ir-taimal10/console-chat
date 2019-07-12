@@ -45,9 +45,11 @@ rl.question("Please enter a nickname: ", function (name) {
 function console_out(msg) {
     // process.stdout.clearLine();
     // process.stdout.cursorTo(0);
+    var today = new Date();
+    var time = today.getFullYear()+ "-" + today.getMonth() + "-" + today.getDate() + "  " + today.getHours() + ":" + today.getMinutes();
     readline.clearLine(process.stdout, 0);
     readline.cursorTo(process.stdout, 0, null);
-    console.log(msg);
+    console.log(`[${time}]: ${msg}`);
     rl.prompt(true);
 }
 
@@ -97,8 +99,8 @@ socket.on(channelKey, function (data) {
         if (data.message.indexOf('notify') !== -1) {
             notifier.notify(
                 {
-                    title: '---',
-                    message: '--',
+                    title: 'Console',
+                    message: '((o))',
                     icon: path.join(__dirname, 'notification.png'), // Absolute path (doesn't work on balloons)
                     sound: true, // Only Notification Center or Windows Toasters
                     wait: true // Wait with callback, until user action is taken against notification
