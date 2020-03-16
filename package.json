@@ -6,16 +6,17 @@
   "scripts": {
     "build": "tsc",
     "build:test": "tsc && node bin/bz-chat",
-    "bz-chat": "node bz-chat"
+    "bz-chat": "node bin/bz-chat"
   },
   "bin": {
-    "bz-chat": "bz-chat.ts"
+    "bz-chat": "bin/bz-chat.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ir-taimal10/console-chat"
   },
   "files": [
+    "bin/*",
     "package.json",
     "bz-chat.ts",
     "server.js"

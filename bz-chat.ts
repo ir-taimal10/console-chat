@@ -8,6 +8,7 @@ import SocketIo from 'socket.io';
 import notifier from 'node-notifier';
 import encrypt from 'socket.io-encrypt';
 import path from 'path';
+
 const portfinder = require('portfinder');
 
 class ConsoleChat {
@@ -17,6 +18,9 @@ class ConsoleChat {
     private channelKey;
     private host;
     private cryptSecret;
+    private app;
+    private server;
+    private ioServer;
 
     constructor(host, channel) {
         this.channelKey = channel || 'general';
@@ -25,16 +29,27 @@ class ConsoleChat {
     }
 
     public init() {
-        const self = this;
-        const app = express();
-        const server = new httpServer.Server(app);
-        const ioServer = new SocketIo(server);
-        this.socket = socketio.connect(`http://${this.host}:8080`, {'forceNew': true, query: `channelKey=${this.channelKey}`});
+        this.configureApp();
+        this.setUserName();
+        this.configureClientReadLine();
+        this.configureClientCommands();
+        this.configureServer();
+    }
+
+    configureApp() {
+        this.app = express();
+        this.server = new httpServer.Server(this.app);
+        this.ioServer = new SocketIo(this.server);
+        this.socket = socketio.connect(`http://${this.host}:8080`, {
+            'forceNew': true,
+            query: `channelKey=${this.channelKey}`
+        });
         encrypt(this.cryptSecret)(this.socket);
         this.readLine = readline.createInterface(process.stdin, process.stdout);
+    }
 
-        this.setUserName();
-
+    configureClientReadLine() {
+        const self = this;
         this.readLine.on('line', function (line) {
             if (line[0] == "/" && line.length > 1) {
                 var cmd = line.match(/[a-z]+\b/)[0];
@@ -47,8 +62,10 @@ class ConsoleChat {
                 self.readLine.prompt(true);
             }
         });
+    }
 
-
+    configureClientCommands() {
+        const self = this;
         self.socket.on(this.channelKey, function (data) {
             var leader;
             if (data.type === 'chat' && data.nick !== self.nick) {
@@ -77,22 +94,24 @@ class ConsoleChat {
                 self.consoleOut(set(data.message, "cyan"));
             }
         });
+    }
 
-
+    configureServer() {
+        const self = this;
         portfinder.basePort = 8080;    // default: 8000
         portfinder.highestPort = 8080; // default: 65535
         portfinder.getPortPromise()
             .then((port) => {
                 if (port === 8080) {
-                    app.use(express.static('public'));
-                    ioServer.use(encrypt(self.cryptSecret));
-                    ioServer.on('connection', function (socket) {
+                    self.app.use(express.static('public'));
+                    self.ioServer.use(encrypt(self.cryptSecret));
+                    self.ioServer.on('connection', function (socket) {
                         const currentChannelKey = socket.handshake.query['channelKey'] || 'general';
                         socket.on('send', function (data) {
-                            ioServer.sockets.emit(currentChannelKey, data);
+                            self.ioServer.sockets.emit(currentChannelKey, data);
                         });
                     });
-                    server.listen(8080, function () {
+                    self.server.listen(8080, function () {
                         // console.log("server running in http://localhost:8080");
                     });
                 }
@@ -100,11 +119,10 @@ class ConsoleChat {
             .catch((err) => {
                 // console.log('Port is not available');
             });
-
     }
 
-    public setUserName(){
-        const self= this;
+    public setUserName() {
+        const self = this;
         this.readLine.question("Please enter a nickname: ", function (name) {
             self.nick = name;
             var msg = self.nick + " has joined the chat";
