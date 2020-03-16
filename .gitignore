@@ -112,3 +112,6 @@ jspm_packages
 
 
 .idea/**
+
+
+bin/**

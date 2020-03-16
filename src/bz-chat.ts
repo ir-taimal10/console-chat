@@ -76,7 +76,7 @@ class ConsoleChat {
                         {
                             title: 'Console',
                             message: '((o))',
-                            icon: path.join(__dirname, 'notification.png'), // Absolute path (doesn't work on balloons)
+                            icon: path.join(__dirname, './assets/notification.png'), // Absolute path (doesn't work on balloons)
                             sound: true, // Only Notification Center or Windows Toasters
                             wait: true // Wait with callback, until user action is taken against notification
                         },
