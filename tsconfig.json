@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2015",
+    "moduleResolution": "node",
+    "lib": [
+      "es2015",
+      "es2018",
+      "dom"
+    ],
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
+    "removeComments": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "outDir": "./bin",
+    "esModuleInterop": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "node"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "typescript"
+  ],
+  "include": [
+    "**/*"
+  ]
+}
