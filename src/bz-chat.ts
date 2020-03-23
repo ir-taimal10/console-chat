@@ -22,18 +22,18 @@ class ConsoleChat {
     private server;
     private ioServer;
 
-    constructor(host, channel) {
-        this.channelKey = channel || 'general';
-        this.host = host || 'localhost';
+    constructor(hostConfig:IHostConfig) {
+        this.channelKey = hostConfig.channel || 'general';
+        this.host = hostConfig.host || 'localhost';
         this.cryptSecret = this.channelKey;
     }
 
-    public init() {
+    public async init() {
         this.configureApp();
         this.setUserName();
         this.configureClientReadLine();
         this.configureClientCommands();
-        this.configureServer();
+        await this.configureServer();
     }
 
     configureApp() {
@@ -96,29 +96,33 @@ class ConsoleChat {
         });
     }
 
-    configureServer() {
+    async configureServer() {
         const self = this;
         portfinder.basePort = 8080;    // default: 8000
         portfinder.highestPort = 8080; // default: 65535
-        portfinder.getPortPromise()
-            .then((port) => {
-                if (port === 8080) {
-                    self.app.use(express.static('public'));
-                    self.ioServer.use(encrypt(self.cryptSecret));
-                    self.ioServer.on('connection', function (socket) {
-                        const currentChannelKey = socket.handshake.query['channelKey'] || 'general';
-                        socket.on('send', function (data) {
-                            self.ioServer.sockets.emit(currentChannelKey, data);
-                        });
-                    });
-                    self.server.listen(8080, function () {
-                        // console.log("server running in http://localhost:8080");
-                    });
-                }
-            })
-            .catch((err) => {
-                // console.log('Port is not available');
+        try {
+            const port = await portfinder.getPortPromise();
+            if (port === 8080) {
+                self.processAvailablePort();
+            }
+        } catch (e) {
+            // console.log('Port is not available');
+        }
+    }
+
+    private processAvailablePort() {
+        const self = this;
+        self.app.use(express.static('public'));
+        self.ioServer.use(encrypt(self.cryptSecret));
+        self.ioServer.on('connection', function (socket) {
+            const currentChannelKey = socket.handshake.query['channelKey'] || 'general';
+            socket.on('send', function (data) {
+                self.ioServer.sockets.emit(currentChannelKey, data);
             });
+        });
+        self.server.listen(8080, function () {
+            // console.log("server running in http://localhost:8080");
+        });
     }
 
     public setUserName() {
@@ -178,5 +182,9 @@ if (argvs.indexOf('--host') > 0) {
 if (argvs.indexOf('--channel') > 0) {
     channelKey = argvs[argvs.indexOf('--channel') + 1];
 }
-const chatInstance = new ConsoleChat(host, channelKey);
-chatInstance.init();
+const hostConfig: IHostConfig = {
+    host: host,
+    channel: channelKey
+};
+const chatInstance = new ConsoleChat(hostConfig);
+chatInstance.init().then(r => "init program");
