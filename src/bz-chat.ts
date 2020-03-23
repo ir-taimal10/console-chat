@@ -22,7 +22,7 @@ class ConsoleChat {
     private server;
     private ioServer;
 
-    constructor(hostConfig:IHostConfig) {
+    constructor(hostConfig: IHostConfig) {
         this.channelKey = hostConfig.channel || 'general';
         this.host = hostConfig.host || 'localhost';
         this.cryptSecret = this.channelKey;
@@ -103,6 +103,7 @@ class ConsoleChat {
         try {
             const port = await portfinder.getPortPromise();
             if (port === 8080) {
+                self.configureToShowBasicData();
                 self.processAvailablePort();
             }
         } catch (e) {
@@ -168,6 +169,26 @@ class ConsoleChat {
             default:
                 this.consoleOut("That is not a valid command.");
         }
+    }
+
+    private configureToShowBasicData() {
+        const self: any = this;
+        this.app.get('/api/system/:systemId/config/:configId', (req, res) => this.getConfiguration(req, res));
+    }
+
+
+    private getConfiguration(req, res) {
+        const self: any = this;
+        const configId = req.params.configId;
+        const systemId = req.params.systemId;
+        const config = {
+            id: configId,
+            systemId: systemId,
+            time: new Date(),
+            channel: self.channel,
+            host: self.host
+        };
+        res.send(config);
     }
 }
 
