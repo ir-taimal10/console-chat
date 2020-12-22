@@ -28,7 +28,7 @@
     "ansi-color": "^0.2.1",
     "express": "^4.17.1",
     "http": "0.0.0",
-    "node-notifier": "^6.0.0",
+    "node-notifier": "^8.0.1",
     "path": "^0.12.7",
     "portfinder": "^1.0.25",
     "readline": "^1.3.0",
